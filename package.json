@@ -5,14 +5,21 @@
   "workspaces": [
     "apps/*"
   ],
-  "scripts": {
-    "dev": "npm run dev --workspaces",
-    "build": "npm run build --workspaces",
-    "lint": "npm run lint --workspaces",
-    "format": "prettier . --write",
-    "format:check": "prettier . --check"
-  },
+"scripts": {
+  "dev:web": "npm -w apps/web run dev",
+  "dev:studio": "npm -w apps/studio run dev",
+  "dev": "concurrently -n WEB,STUDIO -c auto \"npm run dev:web\" \"npm run dev:studio\"",
+  "build:web": "npm -w apps/web run build",
+  "build:studio": "npm -w apps/studio run build",
+  "build": "npm run build:web && npm run build:studio",
+  "lint:web": "npm -w apps/web run lint",
+  "lint:studio": "npm -w apps/studio run lint",
+  "lint": "npm run lint:web && npm run lint:studio",
+  "format": "prettier . --write",
+  "format:check": "prettier . --check"
+},
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "prettier": "^3.8.1"
   }
 }
