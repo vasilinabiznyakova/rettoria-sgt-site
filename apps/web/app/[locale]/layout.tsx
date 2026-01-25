@@ -16,14 +16,8 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params;
 
-  if (!isLocale(locale)) {
-    notFound();
-  }
+  if (!isLocale(locale)) notFound();
 
-  return (
-    <html lang={locale}>
-      <body>{children}</body>
-    </html>
-  );
+// here later there will be a title/menu/language switch
+  return <>{children}</>;
 }
-
