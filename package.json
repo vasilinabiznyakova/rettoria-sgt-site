@@ -8,7 +8,7 @@
 "scripts": {
   "dev:web": "npm -w apps/web run dev",
   "dev:studio": "npm -w apps/studio run dev",
-  "dev": "concurrently -n WEB,STUDIO -c auto \"npm run dev:web\" \"npm run dev:studio\"",
+  "dev": "concurrently --raw \"npm run dev:web | node scripts/with-timestamp.mjs [WEB]\" \"npm run dev:studio | node scripts/with-timestamp.mjs [STUDIO]\"",
   "build:web": "npm -w apps/web run build",
   "build:studio": "npm -w apps/studio run build",
   "build": "npm run build:web && npm run build:studio",
