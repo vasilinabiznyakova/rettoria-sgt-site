@@ -1,0 +1,18 @@
+{
+  "name": "rettoria-sgt-site",
+  "private": true,
+  "description": "Pro bono website for Rettoria SGT — multilingual Next.js + Sanity CMS.",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.1"
+  }
+}
