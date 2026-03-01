@@ -1,11 +1,8 @@
+import Footer from 'app/components/Footer';
+import Header from 'app/components/Header';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-
-const LOCALES = ['uk', 'it', 'en'] as const;
-type Locale = (typeof LOCALES)[number];
-
-function isLocale(value: string): value is Locale {
-  return (LOCALES as readonly string[]).includes(value);
-}
 
 export default async function LocaleLayout({
   children,
@@ -14,10 +11,19 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-
-  if (!isLocale(locale)) notFound();
-
-// here later there will be a title/menu/language switch
-  return <>{children}</>;
+  const { locale: rawLocale } = await params;
+  const locale = rawLocale ?? 'it';
+  let messages;
+  try {
+    messages = await getMessages({ locale });
+  } catch {
+    notFound();
+  }
+  return (
+    <NextIntlClientProvider messages={messages}>
+      <Header />
+      <main>{children}</main>
+      <Footer />
+    </NextIntlClientProvider>
+  );
 }

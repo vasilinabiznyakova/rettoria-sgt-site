@@ -1,0 +1,21 @@
+{
+  "header": {
+    "logo": "Rettoria Saint Jude Thaddeus",
+    "navigation": {
+      "about": "About Us",
+      "projects": "Projects",
+      "donate": "Donations"
+    }
+  },
+  "footer": {
+    "contacts": "Stay in touch with us",
+    "socialMedia": "Follow us on",
+    "links": {
+      "facebook": "Facebook",
+      "telegram": "Telegram"
+    },
+    "copy": "© 2023 Rectorate of Saint Jude Thaddeus. All rights reserved.",
+    "privacyPolicy": "Privacy Policy",
+    "cookiePolicy": "Cookie Policy"
+  }
+}

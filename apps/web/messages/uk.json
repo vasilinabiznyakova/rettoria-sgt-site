@@ -1,0 +1,21 @@
+{
+  "header": {
+    "logo": "Ректорія Святого Юди Тадея",
+    "navigation": {
+      "about": "Про нас",
+      "projects": "Проєкти",
+      "donate": "Пожертви"
+    }
+  },
+  "footer": {
+    "contacts": "Залишайтеся з нами на звʼязку",
+    "socialMedia": "Слідкуйте за нами в",
+    "links": {
+      "facebook": "Facebook",
+      "telegram": "Telegram"
+    },
+    "copy": "© 2023 Ректорат Святого Юди Тадея. Усі права захищені.",
+    "privacyPolicy": "Політика конфіденційності",
+    "cookiePolicy": "Політика використання файлів cookie"
+  }
+}

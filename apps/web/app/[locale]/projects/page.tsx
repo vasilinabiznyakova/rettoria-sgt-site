@@ -1,3 +1,3 @@
 export default function Projects() {
-  return <main style={{ padding: 24 }}>Projects list (TODO)</main>;
+  return <main className="p-10 h-screen">Projects list (TODO)</main>;
 }

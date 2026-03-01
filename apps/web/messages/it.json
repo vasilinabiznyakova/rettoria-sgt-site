@@ -1,0 +1,21 @@
+{
+  "header": {
+    "logo": "Rettoria San Giuda Taddeo",
+    "navigation": {
+      "about": "Chi siamo",
+      "projects": "Progetti",
+      "donate": "Donazioni"
+    }
+  },
+  "footer": {
+    "contacts": "Rimani in contatto con noi",
+    "socialMedia": "Seguici su",
+    "links": {
+      "facebook": "Facebook",
+      "telegram": "Telegram"
+    },
+    "copy": "© 2023 Rettoria San Giuda Taddeo. Tutti i diritti riservati.",
+    "privacyPolicy": "Informativa sulla privacy",
+    "cookiePolicy": "Informativa sui cookie"
+  }
+}
