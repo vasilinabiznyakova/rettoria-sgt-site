@@ -29,7 +29,7 @@ export default function ProjectCard({ project, lang, truncate = 150 }: Props) {
             className="object-cover w-full rounded-t-3xl"
           />
         )}
-        <h2 className="text-2xl font-semibold my-4 text-center hover:text-amber-600">
+        <h2 className="text-xl px-2 font-semibold my-4 text-center hover:text-amber-600">
           {project.title}
         </h2>
       </Link>
