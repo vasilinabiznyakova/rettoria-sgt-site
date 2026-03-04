@@ -1,46 +1,161 @@
+
 # Документація Projects API
 
 ## Огляд
 
-Проєкт складається з:
+**Projects API** надає дані про проєкти для фронтенд‑застосунку.  
+Контент зберігається у **Sanity CMS** і отримується через **Next.js API routes** з використанням GROQ‑запитів.
 
-- **Sanity CMS** (`apps/studio`) — система управління контентом
-- **Next.js (App Router)** (`apps/web`) — фронтенд та API-маршрути
-- Sanity Content Lake  
-  - `projectId: 69m6xw0w`  
-  - `dataset: production`
+API підтримує:
 
-Endpoint `/api/projects` надає пагінований список проєктів для відображення на фронтенді.
+- багатомовний контент
+- пагінацію
+- fallback для мов
+- отримання проєкту за slug
+- оптимізовану доставку зображень через Sanity CDN
+
+API використовується для сторінок фронтенду:
+
+/projects  
+/projects/[slug]
 
 ---
 
-## Модель даних: `project`
+# Архітектура системи
 
-Тип документа в Sanity:
+Застосунок використовує **headless CMS архітектуру**.
+
+```
+             ┌───────────────────────┐
+             │       Sanity CMS       │
+             │   (Content Lake)       │
+             │                        │
+             │  документи project     │
+             │  локалізований контент │
+             └──────────────┬────────┘
+                            │ GROQ запит
+                            │
+                            ▼
+             ┌────────────────────────┐
+             │      Next.js API       │
+             │   (App Router routes)  │
+             │                        │
+             │ /api/projects          │
+             │ /api/projects/[slug]   │
+             └──────────────┬─────────┘
+                            │ JSON API
+                            │
+                            ▼
+             ┌────────────────────────┐
+             │        Frontend        │
+             │       (Next.js)        │
+             │                        │
+             │ сторінка списку        │
+             │ сторінка проєкту       │
+             └────────────────────────┘
+```
+
+### Відповідальність шарів
+
+| Шар | Відповідальність |
+|----|------------------|
+| Sanity CMS | Зберігання структурованого контенту |
+| Next.js API | Отримання і трансформація контенту |
+| Frontend | Відображення інтерфейсу |
+
+---
+
+# Конфігурація Sanity
+
+Контент зберігається у **Sanity Content Lake**.
+
+```
+projectId: 69m6xw0w
+dataset: production
+```
+
+Sanity надає:
+
+- структуроване зберігання контенту
+- хостинг медіафайлів
+- CDN для швидкої доставки
+- мову запитів GROQ
+
+---
+
+# Модель контенту
+
+Тип документа Sanity:
 
 ```
 _type: "project"
 ```
 
-### Поля
+## Поля схеми
 
 | Поле | Тип | Опис |
-|------|-----|------|
-| `title` | Локалізований рядок `{ uk, it, en }` | Назва проєкту |
-| `slug` | `slug.current` | Унікальний ідентифікатор |
-| `description` | Локалізований Portable Text | Rich-text контент |
-| `image` | Зображення | Основне зображення |
-| `image.alt` | Локалізований рядок `{ uk, it, en }` | Alt-текст для доступності |
-
-> У відповіді API поле `description` конвертується у звичайний текст за допомогою `pt::text()`.
+|-----|-----|------|
+| title | Локалізований рядок `{uk,it,en}` | Назва проєкту |
+| slug | `slug.current` | Унікальний ідентифікатор |
+| description | Portable Text | Текст опису |
+| image | Sanity image asset | Зображення проєкту |
+| image.alt | Локалізований рядок `{uk,it,en}` | Alt‑текст зображення |
 
 ---
 
-## API Endpoint
+# Локалізація
 
-### GET `/api/projects`
+Контент підтримує три мови:
 
-Повертає список проєктів із пагінацією, відсортований за датою створення (новіші — першими).
+- uk — українська
+- it — італійська
+- en — англійська
+
+### Приклад структури
+
+```
+title: {
+  uk: "Назва проєкту",
+  it: "Titolo progetto",
+  en: "Project title"
+}
+```
+
+---
+
+# Стратегія fallback для мов
+
+Якщо контент відсутній для вибраної мови, використовується наступний порядок:
+
+selected language → it → en → uk
+
+Приклад реалізації:
+
+```
+coalesce(title[$lang], title.it, title.en, title.uk)
+```
+
+---
+
+# API Endpoints
+
+## Отримати список проєктів
+
+### Endpoint
+
+GET /api/projects
+
+Повертає список проєктів з пагінацією, відсортований за датою створення.
+
+---
+
+## Query параметри
+
+| Параметр | Тип | Значення за замовчуванням | Опис |
+|----------|-----|--------------------------|------|
+| lang | `uk | it | en` | `it` | Мова контенту |
+| page | number | 1 | Номер сторінки |
+| limit | number | 6 | Кількість елементів (макс. 50) |
 
 ---
 
@@ -49,49 +164,28 @@ _type: "project"
 ```
 GET /api/projects
 GET /api/projects?lang=uk
-GET /api/projects?lang=en&page=2&limit=6
+GET /api/projects?lang=en&page=2
+GET /api/projects?page=1&limit=12
 ```
 
 ---
 
-## Query-параметри
-
-| Параметр | Тип | За замовчуванням | Опис |
-|-----------|------|------------------|------|
-| `lang` | `uk` \| `it` \| `en` | `it` | Мова контенту |
-| `page` | number | `1` | Номер сторінки (нумерація з 1) |
-| `limit` | number | `6` | Кількість елементів на сторінці (макс. 50) |
-
----
-
-## Стратегія fallback мов
-
-Якщо значення для вибраної мови відсутнє, використовується наступний порядок fallback:
-
-```
-it → en → uk
-```
-
-Це гарантує повернення контенту навіть за відсутності повного перекладу.
-
----
-
-## Формат відповіді
+## Приклад відповіді
 
 ```json
 {
   "page": 1,
   "limit": 6,
-  "total": 10,
+  "total": 12,
   "items": [
     {
-      "_id": "uuid",
-      "slug": "project-slug",
+      "_id": "project-id",
+      "slug": "youth-meetings",
       "createdAt": "2026-03-01T20:52:14Z",
-      "title": "Назва проєкту",
-      "description": "Звичайний текст з \\n\\n абзацами",
-      "imageUrl": "https://cdn.sanity.io/...",
-      "imageAlt": "Alt текст зображення"
+      "title": "Youth Meetings",
+      "description": "Plain text description...",
+      "imageUrl": "https://cdn.sanity.io/images/...",
+      "imageAlt": "Youth meeting photo"
     }
   ]
 }
@@ -99,62 +193,160 @@ it → en → uk
 
 ---
 
-## Рендеринг поля `description`
+# Отримати проєкт за slug
 
-`description` повертається як звичайний текст.
+### Endpoint
 
-Рекомендований спосіб рендерингу в React:
+GET /api/projects/[slug]
 
-```tsx
+Повертає один конкретний проєкт.
+
+---
+
+## Приклади запитів
+
+```
+GET /api/projects/youth-meetings
+GET /api/projects/youth-meetings?lang=en
+```
+
+---
+
+## Приклад відповіді
+
+```json
+{
+  "_id": "project-id",
+  "slug": "youth-meetings",
+  "createdAt": "2026-03-01T20:52:14Z",
+  "title": "Youth Meetings",
+  "description": "Full project description",
+  "imageUrl": "https://cdn.sanity.io/images/...",
+  "imageAlt": "Community youth meeting"
+}
+```
+
+---
+
+# Рендеринг опису
+
+`description` повертається як **звичайний текст**.
+
+Portable Text конвертується на сервері через:
+
+```
+pt::text()
+```
+
+Рекомендований рендеринг у React:
+
+```
 <p style={{ whiteSpace: "pre-line" }}>
   {description}
 </p>
 ```
 
-Це дозволяє зберегти розбиття на абзаци (`\n\n`).
+Це дозволяє зберегти розділення абзаців.
 
 ---
 
-## Розташування файлів
+# GROQ запити
 
-### Sanity Client
+## Запит списку проєктів
+
 ```
-apps/web/src/lib/sanity.client.ts
+*[_type == "project"]
+  | order(_createdAt desc)
+  [$start...$end]
 ```
 
-### API Route
+## Запит одного проєкту
+
+```
+*[_type == "project" && slug.current == $slug][0]
+```
+
+---
+
+# Розташування файлів
+
+## Sanity Client
+
+```
+apps/web/src/lib/sanity/client.ts
+```
+
+## API Routes
+
 ```
 apps/web/app/api/projects/route.ts
+apps/web/app/api/projects/[slug]/route.ts
 ```
 
-### Схеми Sanity
+## Sanity Schemas
+
 ```
 apps/studio/schemaTypes/
 ```
 
 ---
 
-## Архітектурні примітки
+# Безпека
 
-- API реалізований через Next.js App Router.
-- Конвертація Portable Text у plain text виконується на сервері.
-- Пагінація реалізована на рівні GROQ-запиту.
-- Сортування здійснюється за `_createdAt desc`.
+API дотримується наступних принципів безпеки:
 
----
-
-## Можливі покращення
-
-- Додати endpoint `GET /api/projects/[slug]`
-- Додати кешування або ISR revalidation
-- Розділити `dev` та `production` datasets
-- Додати фільтрацію за категоріями або тегами
-- Описати API у форматі OpenAPI / Swagger
+- токени Sanity **не передаються на клієнт**
+- чернетки (draft) **не повертаються API**
+- доступний лише публічний контент
+- зображення доставляються через **Sanity CDN**
 
 ---
 
-## Безпека
+# Продуктивність
 
-- Draft-контент не експортується через API.
-- Sanity token не передається на клієнт.
-- Зображення віддаються через Sanity CDN.
+- пагінація виконується всередині GROQ‑запиту
+- зображення доставляються через CDN
+- Portable Text конвертується на сервері
+
+Можливі покращення:
+
+- кешування відповідей API
+- ISR / revalidation
+- HTTP caching headers
+
+---
+
+# Можливі майбутні покращення
+
+- фільтрація за категоріями або тегами
+- пошук по проєктах
+- OpenAPI / Swagger документація
+- кешуючий шар
+- інтеграція аналітики
+
+---
+
+# Приклад використання на фронтенді
+
+Отримати список проєктів:
+
+```
+fetch("/api/projects?lang=it&page=1")
+```
+
+Отримати один проєкт:
+
+```
+fetch("/api/projects/youth-meetings?lang=en")
+```
+
+---
+
+# Підсумок
+
+Projects API забезпечує простий інтерфейс між **Sanity CMS** та **Next.js frontend**, що дозволяє:
+
+- керувати контентом через CMS
+- підтримувати кілька мов
+- ефективно отримувати дані
+- масштабувати рендеринг на фронтенді
